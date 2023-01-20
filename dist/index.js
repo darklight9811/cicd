@@ -9870,6 +9870,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
                 base: config.branch[ctx.branch === "dev" ? "prod" : "dev"],
                 head: ctx.branch,
                 title: `[wip] ${ctx.branch}`,
+                draft: true,
                 body: toMarkdown({
                     title: ctx.branch,
                     changes: ctx.changes,

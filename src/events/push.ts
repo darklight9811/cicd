@@ -46,6 +46,7 @@ export default run(async function push(ctx, config) {
 			base: config.branch[ctx.branch === "dev" ? "prod":"dev"],
 			head: ctx.branch,
 			title: `[wip] ${ctx.branch}`,
+			draft: true,
 			body: toMarkdown({
 				title: ctx.branch,
 				changes: ctx.changes,
