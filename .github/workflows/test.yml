@@ -1,0 +1,8 @@
+name: test
+
+on: [push, create, delete, pull_request]
+
+jobs:
+  run:
+    name: Test workflow
+    uses: darklight9811/cicd
