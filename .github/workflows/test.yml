@@ -4,6 +4,10 @@ on: [push, create, delete, pull_request]
 
 jobs:
   run:
-    id: selfref
-    name: Test workflow
-    uses: ./@latest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        id: selfref
+        uses: ./
+        with:
+          token: ${{ github.token }}
