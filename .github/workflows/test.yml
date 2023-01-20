@@ -6,4 +6,4 @@ jobs:
   run:
     id: selfref
     name: Test workflow
-    uses: ./
+    uses: ./@latest
