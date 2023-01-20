@@ -30,7 +30,7 @@ async function main () {
 	// ------------------------------
 
 	const { eventName: event, ref: rawBranch } = ctx
-	const branch = rawBranch.replace("refs/heads", "")
+	const branch = rawBranch.replace("refs/heads/", "")
 
 	core.info(`Event "${event}" triggered${branch ? ` on branch ${branch}` : ""}`);
 
