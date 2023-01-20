@@ -16,5 +16,5 @@ inputs:
     default: ${{ github.token }}
   
 runs:
-  using: "node16"
+  using: node16
   main: dist/index.js
