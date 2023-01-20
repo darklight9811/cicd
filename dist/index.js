@@ -9764,35 +9764,6 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	}
 /******/ 	
 /************************************************************************/
-/******/ 	/* webpack/runtime/compat get default export */
-/******/ 	(() => {
-/******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nccwpck_require__.n = (module) => {
-/******/ 			var getter = module && module.__esModule ?
-/******/ 				() => (module['default']) :
-/******/ 				() => (module);
-/******/ 			__nccwpck_require__.d(getter, { a: getter });
-/******/ 			return getter;
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__nccwpck_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
 /******/ 	/* webpack/runtime/make namespace object */
 /******/ 	(() => {
 /******/ 		// define __esModule on exports
@@ -9813,11 +9784,42 @@ var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
 "use strict";
+// ESM COMPAT FLAG
 __nccwpck_require__.r(__webpack_exports__);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2186);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(5438);
-/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__nccwpck_require__.n(_actions_github__WEBPACK_IMPORTED_MODULE_1__);
+
+// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
+var core = __nccwpck_require__(2186);
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
+var github = __nccwpck_require__(5438);
+;// CONCATENATED MODULE: ./src/utils/markdown.ts
+function fromMarkdown(body) {
+    const lines = body.split("\n");
+    const changesTitle = lines.indexOf("# Changes", 1);
+    // verify
+    if (!lines[0].match(/^#\s+/) ||
+        !lines.find(e => e.match("Changes"))) {
+        return false;
+    }
+    // find description
+    const description = lines.slice(1, changesTitle).join("\n");
+    // find changes
+    const changes = lines.slice(changesTitle + 1).map(t => t.replace("- ", ""));
+    return {
+        title: lines[0].replace("# ", ""),
+        description,
+        changes,
+    };
+}
+function toMarkdown(data) {
+    return `# ${data.title}\n${data.description}\n# Changes\n${data.changes.map(t => `- ${t}`).join("\n")}`;
+}
+
+;// CONCATENATED MODULE: ./src/utils/run.ts
+function run(runner) {
+    return runner;
+}
+
+;// CONCATENATED MODULE: ./src/events/push.ts
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -9827,26 +9829,103 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+// Utils
 
+
+/* harmony default export */ const push = (run(function push(ctx, config) {
+    return __awaiter(this, void 0, void 0, function* () {
+        // check if is working branch
+        if (ctx.branch !== config.branch.prod) {
+            const response = yield ctx.client.pulls.list({
+                state: "open",
+                base: ctx.branch,
+                owner: ctx.owner,
+                repo: ctx.repo,
+            });
+            // only allow one pull request per branch to automate
+            if (response.data.length > 1) {
+                ctx.actions.error(`You have more than one pull request for ${ctx.branch}, for this automation to work you can only have one`);
+            }
+            // pull request already created, update
+            if (response.data.length === 1) {
+                const data = response.data[0];
+                const markdown = fromMarkdown(data.body);
+                if (!markdown) {
+                    ctx.actions.error(`Invalid markdown for the pull request ${data.id}`);
+                    return process.exit(1);
+                }
+                ctx.changes.forEach(t => markdown.changes.push(t));
+                yield ctx.client.pulls.update({
+                    owner: ctx.owner,
+                    repo: ctx.repo,
+                    pull_number: data.id,
+                    body: toMarkdown(markdown),
+                });
+                return;
+            }
+            // create new pull request
+            yield ctx.client.pulls.create({
+                owner: ctx.owner,
+                repo: ctx.repo,
+                base: config.branch[ctx.branch === "dev" ? "prod" : "dev"],
+                head: ctx.branch,
+                body: toMarkdown({
+                    title: ctx.branch,
+                    changes: ctx.changes,
+                    description: "",
+                })
+            });
+        }
+    });
+}));
+
+;// CONCATENATED MODULE: ./src/index.ts
+var src_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+// Packages
+
+
+// Events
 
 function main() {
-    return __awaiter(this, void 0, void 0, function* () {
+    return src_awaiter(this, void 0, void 0, function* () {
         // ------------------------------
         // Arguments
         // ------------------------------
         const config = {
-            token: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("token", { required: true }),
+            token: core.getInput("token", { required: true }),
             branch: {
-                dev: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("dev-branch") || "dev",
-                prod: _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("prod-branch") || "prod",
+                dev: core.getInput("dev-branch") || "dev",
+                prod: core.getInput("prod-branch") || "prod",
             }
         };
         // ------------------------------
         // Setup
         // ------------------------------
-        const client = _actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit(config.token);
-        const ctx = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context;
-        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(JSON.stringify(ctx));
+        const client = github.getOctokit(config.token);
+        const ctx = github.context;
+        // ------------------------------
+        // Job
+        // ------------------------------
+        const { eventName: event, ref: rawBranch } = ctx;
+        const branch = rawBranch.replace("refs/heads", "");
+        core.info(`Event "${event}" triggered${branch ? ` on branch ${branch}` : ""}`);
+        ({
+            push: push,
+        })[event]({
+            branch,
+            actions: core,
+            client: client.rest,
+            owner: ctx.repo.owner,
+            repo: ctx.repo.repo,
+        }, config);
     });
 }
 main();
