@@ -1,0 +1,21 @@
+{
+  "name": "@darklight9811/cicd",
+  "version": "0.1.0",
+  "description": "Main workflow used by me to ensure code quality and stability",
+  "repository": "https://github.com/darklight9811/cicd.git",
+  "author": "Rafael Correa <rafael.chaves98@hotmail.com>",
+  "license": "BSD-3-Clause",
+  "private": false,
+  "scripts": {
+    "build": "ncc build src/index.ts -o dist",
+	"deploy": "yarn build && git add . && git commit -m"
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.36.0",
+    "typescript": "^4.9.4"
+  }
+}

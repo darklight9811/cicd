@@ -1,0 +1,20 @@
+name: "Github workflow"
+description: "Automatically handle workflow between branches"
+author: "Rafael Correa"
+inputs:
+  dev-branch:
+    description: "Branch responsible for handling work in progress branch"
+    required: false
+    default: dev
+  prod-branch:
+    description: "Default branch responsible for deploying into production"
+    required: false
+    default: prod
+  token:
+    description: "Token for the repository, defaults to \"github.token\""
+    required: false
+    default: ${{ github.token }}
+  
+runs:
+  using: "node16"
+  main: "dist/index.js"
