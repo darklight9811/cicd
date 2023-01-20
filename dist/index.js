@@ -9917,14 +9917,20 @@ function main() {
         const { eventName: event, ref: rawBranch } = ctx;
         const branch = rawBranch.replace("refs/heads", "");
         core.info(`Event "${event}" triggered${branch ? ` on branch ${branch}` : ""}`);
-        ({
-            push: push,
-        })[event]({
+        const runner = ({
+            push: push
+        })[event];
+        if (!runner) {
+            core.info(`Event ${event} did not trigger an action`);
+            return process.exit(0);
+        }
+        runner({
             branch,
             actions: core,
             client: client.rest,
             owner: ctx.repo.owner,
             repo: ctx.repo.repo,
+            changes: ctx.payload.commits.map(t => t.message),
         }, config);
     });
 }

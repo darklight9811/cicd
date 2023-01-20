@@ -34,15 +34,23 @@ async function main () {
 
 	core.info(`Event "${event}" triggered${branch ? ` on branch ${branch}` : ""}`);
 
-	({
-		push,
-	})[event](
+	const runner = ({
+		push
+	})[event]
+
+	if (!runner) {
+		core.info(`Event ${event} did not trigger an action`)
+		return process.exit(0)
+	}
+
+	runner(
 		{
 			branch,
 			actions: core,
 			client: client.rest,
 			owner: ctx.repo.owner,
 			repo: ctx.repo.repo,
+			changes: ctx.payload.commits.map(t => t.message),
 		},
 		config,
 	)
