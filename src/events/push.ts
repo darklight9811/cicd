@@ -32,7 +32,7 @@ export default run(async function push(ctx, config) {
 			await ctx.client.pulls.update({
 				owner: ctx.owner,
 				repo: ctx.repo,
-				pull_number: data.id,
+				pull_number: data.number,
 				body: toMarkdown(markdown),
 			})
 

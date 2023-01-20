@@ -9858,7 +9858,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
                 yield ctx.client.pulls.update({
                     owner: ctx.owner,
                     repo: ctx.repo,
-                    pull_number: data.id,
+                    pull_number: data.number,
                     body: toMarkdown(markdown),
                 });
                 return;
