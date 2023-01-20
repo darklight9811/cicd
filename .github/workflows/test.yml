@@ -7,7 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@2
+        uses: actions/checkout@v2
+        
       - name: Test
         id: selfref
         uses: ./
