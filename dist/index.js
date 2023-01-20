@@ -9794,10 +9794,10 @@ var github = __nccwpck_require__(5438);
 ;// CONCATENATED MODULE: ./src/utils/markdown.ts
 function fromMarkdown(body) {
     const lines = body.split("\n");
-    const changesTitle = lines.indexOf("# Changes", 1);
+    const changesTitle = lines.indexOf("## Changes", 1);
     // verify
     if (!lines[0].match(/^#\s+/) ||
-        !lines.find(e => e.match(/Changes/))) {
+        changesTitle === -1) {
         return false;
     }
     // find description
@@ -9816,7 +9816,7 @@ function toMarkdown(data) {
             return prev;
         return [...prev, curr];
     }, []).map(t => `- ${t}`).join("\n");
-    return `# ${data.title}\n${data.description}\n# Changes\n${filtered}`;
+    return `# ${data.title}\n${data.description}\n## Changes\n${filtered}`;
 }
 
 ;// CONCATENATED MODULE: ./src/utils/run.ts

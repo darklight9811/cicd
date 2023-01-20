@@ -2,12 +2,12 @@ import type Markdown from "../types/markdown"
 
 export function fromMarkdown (body: string): Markdown | false {
 	const lines = body.split("\n")
-	const changesTitle = lines.indexOf("# Changes", 1)
+	const changesTitle = lines.indexOf("## Changes", 1)
 
 	// verify
 	if (
 		!lines[0].match(/^#\s+/) ||
-		!lines.find(e => e.match(/Changes/))
+		changesTitle === -1
 	){
 		return false
 	}
@@ -32,5 +32,5 @@ export function toMarkdown(data: Markdown) {
 		return [...prev, curr]
 	}, []).map(t => `- ${t}`).join("\n")
 
-	return `# ${data.title}\n${data.description}\n# Changes\n${filtered}`
+	return `# ${data.title}\n${data.description}\n## Changes\n${filtered}`
 }
