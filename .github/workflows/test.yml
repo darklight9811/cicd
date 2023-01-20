@@ -1,6 +1,6 @@
 name: test
 
-on: [push, delete, pull_request]
+on: [push]
 
 jobs:
   test:
