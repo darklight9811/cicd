@@ -26,5 +26,11 @@ export function fromMarkdown (body: string): Markdown | false {
 }
 
 export function toMarkdown(data: Markdown) {
-	return `# ${data.title}\n${data.description}\n# Changes\n${data.changes.map(t => `- ${t}`).join("\n")}`
+	const filtered = data.changes.reduce((prev, curr) => {
+		if (prev.at(-1) === curr) return prev
+
+		return [...prev, curr]
+	}, []).map(t => `- ${t}`).join("\n")
+
+	return `# ${data.title}\n${data.description}\n# Changes\n${filtered}`
 }
