@@ -9838,17 +9838,17 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
         if (ctx.branch !== config.branch.prod) {
             const response = yield ctx.client.pulls.list({
                 state: "open",
-                base: ctx.branch,
                 owner: ctx.owner,
                 repo: ctx.repo,
-            });
+                base: config.branch[ctx.branch === "dev" ? "prod" : "dev"],
+            }).then(t => t.data.filter(t => t.head.ref.replace("refs/heads/", "") === ctx.branch));
             // only allow one pull request per branch to automate
-            if (response.data.length > 1) {
+            if (response.length > 1) {
                 ctx.actions.error(`You have more than one pull request for ${ctx.branch}, for this automation to work you can only have one`);
             }
             // pull request already created, update
-            if (response.data.length === 1) {
-                const data = response.data[0];
+            if (response.length === 1) {
+                const data = response[0];
                 const markdown = fromMarkdown(data.body);
                 if (!markdown) {
                     ctx.actions.error(`Invalid markdown for the pull request ${data.id}`);
