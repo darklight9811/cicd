@@ -9869,6 +9869,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
                 repo: ctx.repo,
                 base: config.branch[ctx.branch === "dev" ? "prod" : "dev"],
                 head: ctx.branch,
+                title: `[wip] ${ctx.branch}`,
                 body: toMarkdown({
                     title: ctx.branch,
                     changes: ctx.changes,
