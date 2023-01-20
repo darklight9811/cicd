@@ -4,5 +4,6 @@ on: [push, create, delete, pull_request]
 
 jobs:
   run:
+    id: selfref
     name: Test workflow
-    uses: ../../action.yml
+    uses: ./
