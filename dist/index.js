@@ -9794,10 +9794,10 @@ var github = __nccwpck_require__(5438);
 ;// CONCATENATED MODULE: ./src/utils/markdown.ts
 function fromMarkdown(body) {
     const lines = body.split("\n");
-    const changesTitle = lines.indexOf("# Changes", 1);
+    const changesTitle = lines.indexOf("## Changes", 1);
     // verify
     if (!lines[0].match(/^#\s+/) ||
-        !lines.find(e => e.match(/Changes/))) {
+        changesTitle === -1) {
         return false;
     }
     // find description
@@ -9811,7 +9811,12 @@ function fromMarkdown(body) {
     };
 }
 function toMarkdown(data) {
-    return `# ${data.title}\n${data.description}\n# Changes\n${data.changes.map(t => `- ${t}`).join("\n")}`;
+    const filtered = data.changes.reduce((prev, curr) => {
+        if (prev.at(-1) === curr)
+            return prev;
+        return [...prev, curr];
+    }, []).map(t => `- ${t}`).join("\n");
+    return `# ${data.title}\n${data.description}\n## Changes\n${filtered}`;
 }
 
 ;// CONCATENATED MODULE: ./src/utils/run.ts
@@ -9886,17 +9891,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
         // update dev branch
         if (ctx.branch === config.branch.prod) {
             ctx.actions.info("Updating branches");
-            const [dev, prod, work] = yield Promise.all([
-                ctx.client.repos.getBranch({
-                    branch: config.branch.dev,
-                    owner: ctx.owner,
-                    repo: ctx.repo,
-                }),
-                ctx.client.repos.getBranch({
-                    branch: config.branch.prod,
-                    owner: ctx.owner,
-                    repo: ctx.repo,
-                }),
+            const [work] = yield Promise.all([
                 ctx.client.repos.listBranches({
                     owner: ctx.owner,
                     repo: ctx.repo,
@@ -9905,19 +9900,19 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
                 })
             ]);
             yield Promise.all([
-                ctx.client.git.createCommit({
+                ctx.client.repos.merge({
                     message: `update ${config.branch.dev}`,
                     owner: ctx.owner,
                     repo: ctx.repo,
-                    tree: dev.data.commit.sha,
-                    parents: [prod.data.commit.sha],
+                    base: config.branch.dev,
+                    head: config.branch.prod,
                 }),
-                ...work.data.map(t => ctx.client.git.createCommit({
+                ...work.data.map(t => ctx.client.repos.merge({
+                    message: `update ${config.branch.dev}`,
                     owner: ctx.owner,
                     repo: ctx.repo,
-                    message: `auto update from ${config.branch.prod}`,
-                    tree: t.commit.sha,
-                    parents: [dev.data.commit.sha],
+                    base: t.name,
+                    head: config.branch.prod,
                 }))
             ]);
             ctx.actions.info("Updated branches");
@@ -9925,12 +9920,7 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
         // update work branches
         else if (ctx.branch === config.branch.dev) {
             ctx.actions.info("Updating branches");
-            const [dev, work] = yield Promise.all([
-                ctx.client.repos.getBranch({
-                    branch: config.branch.dev,
-                    owner: ctx.owner,
-                    repo: ctx.repo,
-                }),
+            const [work] = yield Promise.all([
                 ctx.client.repos.listBranches({
                     owner: ctx.owner,
                     repo: ctx.repo,
@@ -9938,12 +9928,12 @@ var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _argume
                     per_page: 20,
                 })
             ]);
-            yield Promise.all(work.data.map(t => ctx.client.git.createCommit({
+            yield Promise.all(work.data.map(t => ctx.client.repos.merge({
+                message: `update ${config.branch.dev}`,
                 owner: ctx.owner,
                 repo: ctx.repo,
-                message: `auto update from ${config.branch.dev}`,
-                tree: t.commit.sha,
-                parents: [dev.data.commit.sha],
+                base: t.name,
+                head: config.branch.prod,
             })));
             ctx.actions.info("Updated branches");
         }

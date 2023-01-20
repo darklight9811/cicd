@@ -65,17 +65,7 @@ export default run(async function push(ctx, config) {
 	// update dev branch
 	if (ctx.branch === config.branch.prod) {
 		ctx.actions.info("Updating branches")
-		const [dev, prod, work] = await Promise.all([
-			ctx.client.repos.getBranch({
-				branch: config.branch.dev,
-				owner: ctx.owner,
-				repo: ctx.repo,
-			}),
-			ctx.client.repos.getBranch({
-				branch: config.branch.prod,
-				owner: ctx.owner,
-				repo: ctx.repo,
-			}),
+		const [work] = await Promise.all([
 			ctx.client.repos.listBranches({
 				owner: ctx.owner,
 				repo: ctx.repo,
@@ -85,19 +75,19 @@ export default run(async function push(ctx, config) {
 		])
 		
 		await Promise.all([
-			ctx.client.git.createCommit({
+			ctx.client.repos.merge({
 				message: `update ${config.branch.dev}`,
 				owner: ctx.owner,
 				repo: ctx.repo,
-				tree: dev.data.commit.sha,
-				parents: [prod.data.commit.sha],
+				base: config.branch.dev,
+				head: config.branch.prod,
 			}),
-			...work.data.map(t => ctx.client.git.createCommit({
+			...work.data.map(t => ctx.client.repos.merge({
+				message: `update ${config.branch.dev}`,
 				owner: ctx.owner,
 				repo: ctx.repo,
-				message: `auto update from ${config.branch.prod}`,
-				tree: t.commit.sha,
-				parents: [dev.data.commit.sha],
+				base: t.name,
+				head: config.branch.prod,
 			}))
 		])
 		ctx.actions.info("Updated branches")
@@ -106,12 +96,7 @@ export default run(async function push(ctx, config) {
 	// update work branches
 	else if (ctx.branch === config.branch.dev) {
 		ctx.actions.info("Updating branches")
-		const [dev, work] = await Promise.all([
-			ctx.client.repos.getBranch({
-				branch: config.branch.dev,
-				owner: ctx.owner,
-				repo: ctx.repo,
-			}),
+		const [work] = await Promise.all([
 			ctx.client.repos.listBranches({
 				owner: ctx.owner,
 				repo: ctx.repo,
@@ -120,12 +105,12 @@ export default run(async function push(ctx, config) {
 			})
 		])
 		
-		await Promise.all(work.data.map(t => ctx.client.git.createCommit({
+		await Promise.all(work.data.map(t => ctx.client.repos.merge({
+			message: `update ${config.branch.dev}`,
 			owner: ctx.owner,
 			repo: ctx.repo,
-			message: `auto update from ${config.branch.dev}`,
-			tree: t.commit.sha,
-			parents: [dev.data.commit.sha],
+			base: t.name,
+			head: config.branch.prod,
 		})))
 		ctx.actions.info("Updated branches")
 	}
