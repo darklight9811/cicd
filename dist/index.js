@@ -9797,7 +9797,7 @@ function fromMarkdown(body) {
     const changesTitle = lines.indexOf("# Changes", 1);
     // verify
     if (!lines[0].match(/^#\s+/) ||
-        !lines.find(e => e.match("Changes"))) {
+        !lines.find(e => e.match(/Changes/))) {
         return false;
     }
     // find description
@@ -10001,7 +10001,7 @@ function main() {
             client: client.rest,
             owner: ctx.repo.owner,
             repo: ctx.repo.repo,
-            changes: ctx.payload.commits.map(t => t.message.match("[") ? t.message : `[chore] ${t.message}`),
+            changes: ctx.payload.commits.map(t => t.message.match(/\[/) ? t.message : `[chore] ${t.message}`),
         }, config);
     });
 }

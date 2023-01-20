@@ -7,7 +7,7 @@ export function fromMarkdown (body: string): Markdown | false {
 	// verify
 	if (
 		!lines[0].match(/^#\s+/) ||
-		!lines.find(e => e.match("Changes"))
+		!lines.find(e => e.match(/Changes/))
 	){
 		return false
 	}
